@@ -175,7 +175,12 @@
     color:#fff;font-size:13px;font-weight:700;padding:20px 12px 10px;
   }
   @media (max-width:900px){
-    .gallery-grid{grid-template-columns:repeat(2,1fr);}
+    .gallery-grid{grid-template-columns:repeat(4,1fr);gap:8px;}
+  }
+  .gallery-section-gap{margin-top:48px;}
+  .gallery-empty{
+    color:var(--brown-soft);font-size:14px;padding:24px;text-align:center;
+    border:1.5px dashed var(--line);border-radius:18px;
   }
 
   /* ===== Programs ===== */
@@ -451,10 +456,17 @@
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow">어린이집 둘러보기</span>
-        <h2>한솔어린이집의 하루</h2>
-        <p>아이들이 실제로 뛰어노는 공간을 사진으로 미리 만나보세요.</p>
+        <h2>어린이집 경관</h2>
+        <p>아이들이 지내는 공간을 사진으로 미리 만나보세요.</p>
       </div>
-      <div class="gallery-grid reveal"><div id="galleryGrid"></div></div>
+      <div id="galleryGridScenery" class="gallery-grid reveal"></div>
+
+      <div class="section-head reveal gallery-section-gap">
+        <span class="eyebrow">어린이집 둘러보기</span>
+        <h2>어린이집 활동</h2>
+        <p>아이들이 활동하는 모습을 담은 사진들이에요.</p>
+      </div>
+      <div id="galleryGridActivity" class="gallery-grid reveal"></div>
     </div>
   </section>
 
@@ -597,7 +609,7 @@
           <div class="map-placeholder">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none"><path d="M12 22C12 22 20 14.5 20 9C20 4.6 16.4 1 12 1C7.6 1 4 4.6 4 9C4 14.5 12 22 12 22Z" fill="#F5A623"/><circle cx="12" cy="9" r="3.4" fill="#FFF8EC"/></svg>
             <p>부산광역시 부산진구 가야공원로 40번길 10 (가야동)</p>
-            <a href="https://www.google.com/maps/search/?api=1&query=%EB%B6%80%EC%82%B0%EA%B4%91%EC%97%AD%EC%8B%9C%20%EB%B6%80%EC%82%B0%EC%A7%84%EA%B5%AC%20%EA%B0%80%EC%95%BC%EA%B3%B5%EC%9B%90%EB%A1%9C%2040%EB%B2%88%EA%B8%B8%2010" target="_blank" rel="noopener" class="btn btn-primary">지도에서 크게 보기</a>
+            <a href="https://map.naver.com/p/search/%EB%B6%80%EC%82%B0%EA%B4%91%EC%97%AD%EC%8B%9C%20%EB%B6%80%EC%82%B0%EC%A7%84%EA%B5%AC%20%EA%B0%80%EC%95%BC%EA%B3%B5%EC%9B%90%EB%A1%9C%2040%EB%B2%88%EA%B8%B8%2010" target="_blank" rel="noopener" class="btn btn-primary">네이버지도에서 크게 보기</a>
           </div>
         </div>
       </div>
@@ -683,17 +695,28 @@
   let events = [];
 
   async function renderGallery(){
-    const galleryGrid = document.getElementById('galleryGrid');
-    if (!galleryGrid) return;
+    const sceneryGrid = document.getElementById('galleryGridScenery');
+    const activityGrid = document.getElementById('galleryGridActivity');
+    if (!sceneryGrid || !activityGrid) return;
     const { data, error } = await sb.from('gallery').select('*').order('sort_order', { ascending: true });
     if (error || !data) return;
-    data.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'gallery-item';
-      div.innerHTML = '<img src="' + item.image_url + '" alt="' + (item.caption || '') + '" loading="lazy">' +
-        '<span class="gallery-cap">' + (item.caption || '') + '</span>';
-      galleryGrid.appendChild(div);
-    });
+
+    function fillGrid(container, items){
+      if (items.length === 0){
+        container.innerHTML = '<p class="gallery-empty">아직 등록된 사진이 없어요.</p>';
+        return;
+      }
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        div.innerHTML = '<img src="' + item.image_url + '" alt="' + (item.caption || '') + '" loading="lazy">' +
+          '<span class="gallery-cap">' + (item.caption || '') + '</span>';
+        container.appendChild(div);
+      });
+    }
+
+    fillGrid(sceneryGrid, data.filter(i => (i.category || '경관') === '경관'));
+    fillGrid(activityGrid, data.filter(i => i.category === '활동'));
   }
 
   async function renderReviews(){

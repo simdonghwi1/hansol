@@ -243,6 +243,13 @@
       <div class="card">
         <h3>새 사진 추가</h3>
         <div class="field">
+          <label>구분</label>
+          <select id="gal-category">
+            <option value="경관">어린이집 경관</option>
+            <option value="활동">어린이집 활동</option>
+          </select>
+        </div>
+        <div class="field">
           <label>캡션(사진 이름)</label>
           <input type="text" id="gal-caption" placeholder="예: 실내 놀이터">
         </div>
@@ -469,9 +476,11 @@
     data.forEach((item, idx) => {
       const div = document.createElement('div');
       div.className = 'gallery-admin-item';
+      const cat = item.category || '경관';
       div.innerHTML =
         '<img src="' + item.image_url + '" alt="">' +
         '<div class="gi-body">' +
+          '<p style="font-size:11px;color:var(--honey-deep);font-weight:700;margin:0 0 4px;">' + cat + '</p>' +
           '<input type="text" value="' + escapeAttr(item.caption) + '" data-id="' + item.id + '" class="cap-input">' +
           '<div class="gi-actions">' +
             '<button class="icon-btn" data-act="up" data-id="' + item.id + '" data-idx="' + idx + '" ' + (idx === 0 ? 'disabled' : '') + '>↑</button>' +
@@ -525,6 +534,7 @@
     if (!file) return;
     const captionInput = document.getElementById('gal-caption');
     const caption = captionInput.value.trim() || file.name;
+    const category = document.getElementById('gal-category').value;
     const statusEl = document.getElementById('uploadStatus');
     statusEl.textContent = '업로드 중...';
 
@@ -553,7 +563,7 @@
           const { data: existing } = await sb.from('gallery').select('sort_order').order('sort_order', { ascending: false }).limit(1);
           const nextOrder = existing && existing[0] ? existing[0].sort_order + 1 : 0;
           const { error: insertError } = await sb.from('gallery').insert({
-            image_url: urlData.publicUrl, caption: caption, sort_order: nextOrder
+            image_url: urlData.publicUrl, caption: caption, sort_order: nextOrder, category: category
           });
           if (insertError) {
             statusEl.textContent = '저장 실패: ' + insertError.message;
