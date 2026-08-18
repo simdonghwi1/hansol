@@ -441,14 +441,6 @@
         <p>한솔어린이집을 거쳐간 아이들과 부모님들이 남겨주신 소중한 후기예요.</p>
       </div>
       <div class="review-slider reveal">
-        <!--
-          여기에 후기 카드를 추가하세요. 카드 하나의 구조는 아래와 같습니다.
-          <div class="review-card"><div class="review-inner">
-            <span class="review-stars" aria-label="5점 만점에 5점">★★★★★</span>
-            <p class="review-text">후기 내용</p>
-            <div class="review-meta"><span class="review-name">이름</span><span class="review-date">연도</span></div>
-          </div></div>
-        -->
         <div class="review-track" id="reviewTrack"></div>
       </div>
     </div>
@@ -662,8 +654,12 @@
   <div class="footer-bottom wrap">© 2026 한솔어린이집. All rights reserved.</div>
 </footer>
 
-<script src="data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+  const SUPABASE_URL = 'https://bxfobslxjrkuturlihbt.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4Zm9ic2x4anJrdXR1cmxpaGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwMDM3NDgsImV4cCI6MjEwMjU3OTc0OH0.xb6Ar-ugBzbz0-v9LbCumjPZWqgRqk3feRomp0yVfFI';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const menuBtn = document.getElementById('menuBtn');
   const nav = document.getElementById('nav');
   menuBtn.addEventListener('click', () => {
@@ -681,25 +677,31 @@
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
   /* ============================================================
-     공지사항 · 후기 · 갤러리 데이터는 data.js 파일에서 불러옵니다.
-     admin.html(관리자 페이지)에서 내용을 수정하세요.
+     공지사항 · 후기 · 갤러리 데이터는 Supabase에서 실시간으로 불러옵니다.
+     내용 수정은 admin.html(관리자 페이지)에서 하시면 바로 반영돼요.
      ============================================================ */
-  const events = (window.siteData && window.siteData.events) || [];
+  let events = [];
 
-  const galleryGrid = document.getElementById('galleryGrid');
-  if (galleryGrid && window.siteData && window.siteData.gallery) {
-    window.siteData.gallery.forEach(item => {
+  async function renderGallery(){
+    const galleryGrid = document.getElementById('galleryGrid');
+    if (!galleryGrid) return;
+    const { data, error } = await sb.from('gallery').select('*').order('sort_order', { ascending: true });
+    if (error || !data) return;
+    data.forEach(item => {
       const div = document.createElement('div');
       div.className = 'gallery-item';
-      div.innerHTML = '<img src="' + item.src + '" alt="' + item.alt + '" loading="lazy">' +
-        '<span class="gallery-cap">' + item.caption + '</span>';
+      div.innerHTML = '<img src="' + item.image_url + '" alt="' + (item.caption || '') + '" loading="lazy">' +
+        '<span class="gallery-cap">' + (item.caption || '') + '</span>';
       galleryGrid.appendChild(div);
     });
   }
 
-  const reviewTrackEl = document.getElementById('reviewTrack');
-  if (reviewTrackEl && window.siteData && window.siteData.reviews && window.siteData.reviews.length > 0) {
-    window.siteData.reviews.forEach(r => {
+  async function renderReviews(){
+    const reviewTrackEl = document.getElementById('reviewTrack');
+    if (!reviewTrackEl) return;
+    const { data, error } = await sb.from('reviews').select('*').order('sort_order', { ascending: true });
+    if (error || !data || data.length === 0) return;
+    data.forEach(r => {
       const div = document.createElement('div');
       div.className = 'review-card';
       div.innerHTML =
@@ -710,11 +712,15 @@
         '</div>';
       reviewTrackEl.appendChild(div);
     });
+    setupReviewSlider();
   }
 
+  async function loadEventsAndRenderCalendar(){
+    const { data, error } = await sb.from('events').select('*');
+    if (!error && data) events = data;
 
-  const calGrid = document.getElementById('calGrid');
-  if (calGrid) {
+    const calGrid = document.getElementById('calGrid');
+    if (!calGrid) return;
     const calTitle = document.getElementById('calTitle');
     const eventListEl = document.getElementById('eventList');
     const today = new Date();
@@ -777,7 +783,7 @@
         card.className = 'event-card';
         card.innerHTML =
           '<div class="event-date"><span class="day">' + d + '</span><span class="month">' + monthNames[m - 1] + '</span></div>' +
-          '<div class="event-body"><h4>' + e.title + '</h4><p>' + e.desc + '</p></div>';
+          '<div class="event-body"><h4>' + e.title + '</h4><p>' + (e.description || '') + '</p></div>';
         eventListEl.appendChild(card);
       });
     }
@@ -797,8 +803,9 @@
     renderEventList();
   }
 
-  const reviewTrack = document.getElementById('reviewTrack');
-  if (reviewTrack && reviewTrack.children.length > 0) {
+  function setupReviewSlider(){
+    const reviewTrack = document.getElementById('reviewTrack');
+    if (!reviewTrack || reviewTrack.children.length === 0) return;
     const originalCards = Array.from(reviewTrack.children);
     const originalCount = originalCards.length;
     originalCards.slice(0, 3).forEach(c => reviewTrack.appendChild(c.cloneNode(true)));
@@ -831,6 +838,10 @@
     window.addEventListener('resize', () => goTo(reviewIdx, false));
   }
 
+  renderGallery();
+  renderReviews();
+  loadEventsAndRenderCalendar();
 </script>
+
 </body>
 </html>
