@@ -318,6 +318,28 @@
     .calendar-wrap{grid-template-columns:1fr;}
   }
 
+  /* ===== Blog / Posts ===== */
+  .post-list{display:flex;flex-direction:column;gap:16px;}
+  .post-card{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:24px 26px;cursor:pointer;transition:box-shadow .2s, transform .2s;
+  }
+  .post-card:hover{box-shadow:0 8px 22px rgba(91,65,48,0.10);transform:translateY(-2px);}
+  .post-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .post-title{margin:0;font-size:20px;color:var(--brown);font-family:'Gaegu','Noto Sans KR',sans-serif;}
+  .post-date{font-size:13px;color:var(--brown-soft);flex:none;}
+  .post-excerpt{margin:8px 0 0;font-size:15px;color:var(--brown-soft);line-height:1.7;}
+  .post-body{
+    display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:16px;color:var(--brown);line-height:1.9;white-space:pre-wrap;
+  }
+  .post-card.open .post-body{display:block;}
+  .post-card.open .post-excerpt{display:none;}
+  .post-toggle{
+    margin-top:12px;font-size:14px;font-weight:700;color:var(--honey-deep);
+  }
+  .post-empty{color:var(--brown-soft);font-size:15px;text-align:center;padding:24px;}
+
   /* ===== Location ===== */
   .location-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:stretch;}
   .info-card{
@@ -398,6 +420,7 @@
       <a href="#program">보육 프로그램</a>
       <a href="#teachers">선생님 소개</a>
       <a href="#notice">공지사항</a>
+      <a href="#blog">육아 이야기</a>
       <a href="#location">오시는 길</a>
       <a href="#contact" class="nav-cta">입학 상담</a>
     </nav>
@@ -765,8 +788,23 @@
     </div>
   </section>
 
+  <!-- BLOG -->
+  <section id="blog">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">📝 원장님 육아 이야기</span>
+        <h2>15년 경력이 전하는 이야기</h2>
+        <p>어린이집에서 아이들을 만나며 알게 된 것들을 조금씩 나눕니다.</p>
+      </div>
+      <div class="post-list reveal" id="postList"></div>
+      <div style="text-align:center;margin-top:28px;">
+        <button type="button" class="btn btn-outline" id="postMoreBtn" style="display:none;">글 더 보기</button>
+      </div>
+    </div>
+  </section>
+
   <!-- LOCATION -->
-  <section id="location">
+  <section id="location" class="program-band">
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow">📍 오시는 길</span>
@@ -804,7 +842,7 @@
   </section>
 
   <!-- CONTACT -->
-  <section id="contact" class="program-band">
+  <section id="contact">
     <div class="wrap">
       <div class="section-head reveal">
         <span class="eyebrow">💛 문의하기</span>
@@ -1048,8 +1086,57 @@
     window.addEventListener('resize', () => goTo(reviewIdx, false));
   }
 
+  async function renderPosts(){
+    const listEl = document.getElementById('postList');
+    const moreBtn = document.getElementById('postMoreBtn');
+    if (!listEl) return;
+
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' +
+      String(today.getMonth() + 1).padStart(2, '0') + '-' +
+      String(today.getDate()).padStart(2, '0');
+
+    const { data, error } = await sb.from('posts')
+      .select('*')
+      .lte('publish_date', todayStr)
+      .order('publish_date', { ascending: false });
+
+    if (error || !data || data.length === 0){
+      listEl.innerHTML = '<p class="post-empty">곧 첫 이야기를 올릴게요.</p>';
+      return;
+    }
+
+    let shown = 5;
+    function draw(){
+      listEl.innerHTML = '';
+      data.slice(0, shown).forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'post-card';
+        const excerpt = p.content.replace(/\s+/g, ' ').slice(0, 95) + '…';
+        const d = p.publish_date.split('-');
+        card.innerHTML =
+          '<div class="post-head">' +
+            '<h3 class="post-title">' + p.title + '</h3>' +
+            '<span class="post-date">' + d[0] + '.' + d[1] + '.' + d[2] + '</span>' +
+          '</div>' +
+          '<p class="post-excerpt">' + excerpt + '</p>' +
+          '<div class="post-body">' + p.content + '</div>' +
+          '<div class="post-toggle">자세히 보기 →</div>';
+        card.addEventListener('click', () => {
+          const open = card.classList.toggle('open');
+          card.querySelector('.post-toggle').textContent = open ? '접기 ↑' : '자세히 보기 →';
+        });
+        listEl.appendChild(card);
+      });
+      moreBtn.style.display = shown < data.length ? 'inline-flex' : 'none';
+    }
+    moreBtn.addEventListener('click', () => { shown += 5; draw(); });
+    draw();
+  }
+
   renderGallery();
   renderReviews();
+  renderPosts();
   loadEventsAndRenderCalendar();
 </script>
 

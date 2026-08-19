@@ -177,6 +177,7 @@
       <button class="tab-btn active" data-tab="events">📅 공지사항</button>
       <button class="tab-btn" data-tab="reviews">⭐ 학부모 후기</button>
       <button class="tab-btn" data-tab="gallery">🖼️ 사진 갤러리</button>
+      <button class="tab-btn" data-tab="posts">📝 육아 이야기</button>
     </div>
 
     <div class="panel active" id="panel-events">
@@ -261,6 +262,36 @@
         </div>
       </div>
     </div>
+
+    <div class="panel" id="panel-posts">
+      <div class="notice" style="background:#EAF3EA;">
+        <b>자동 발행</b> — 글마다 <b>공개 날짜</b>가 정해져 있어요. 그날이 되면 홈페이지에 저절로 올라가요.
+        아직 공개 전인 글은 목록에 <b>[예약]</b>으로 표시돼요. <b>복사</b> 버튼을 누르면 글 전체가 복사되니 네이버 블로그에 붙여넣으시면 돼요.
+      </div>
+      <div class="card">
+        <h3>등록된 글</h3>
+        <p class="sub">최신 공개일 순서로 보여요.</p>
+        <div id="postListAdmin">불러오는 중...</div>
+      </div>
+      <div class="card">
+        <h3>새 글 쓰기</h3>
+        <form class="add-form" id="postForm">
+          <div class="field">
+            <label>공개 날짜</label>
+            <input type="date" id="po-date" required>
+          </div>
+          <div class="field">
+            <label>제목</label>
+            <input type="text" id="po-title" placeholder="예: 등원 거부하는 아이, 이렇게 도와주세요" required>
+          </div>
+          <div class="field">
+            <label>본문</label>
+            <textarea id="po-content" style="min-height:220px;" placeholder="본문을 입력해주세요. 문단은 엔터 두 번으로 나눠주세요." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">글 등록</button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -302,6 +333,7 @@
     loadEvents();
     loadReviews();
     loadGallery();
+    loadPosts();
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -578,6 +610,100 @@
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
+  });
+
+  /* ---------- Posts ---------- */
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  async function loadPosts(){
+    const { data, error } = await sb.from('posts').select('*').order('publish_date', { ascending: false });
+    const list = document.getElementById('postListAdmin');
+    if (error) { list.innerHTML = '<p class="empty-msg">불러오기 실패: ' + error.message + '</p>'; return; }
+    if (!data || data.length === 0) { list.innerHTML = '<p class="empty-msg">등록된 글이 없습니다.</p>'; return; }
+    const t = todayStr();
+    list.innerHTML = '';
+    window._postCache = {};
+    data.forEach(p => {
+      window._postCache[p.id] = p;
+      const scheduled = p.publish_date > t;
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML =
+        '<div class="item-body">' +
+          '<p class="item-meta">' + p.publish_date +
+            (scheduled ? ' <span style="color:var(--honey-deep);font-weight:700;">[예약]</span>'
+                       : ' <span style="color:var(--pine);font-weight:700;">[공개중]</span>') + '</p>' +
+          '<p class="item-title">' + escapeHtml(p.title) + '</p>' +
+          '<p class="item-desc">' + escapeHtml(p.content.slice(0, 70)) + '…</p>' +
+        '</div>' +
+        '<div class="item-actions">' +
+          '<button class="icon-btn" data-act="copy-post" data-id="' + p.id + '">복사</button>' +
+          '<button class="icon-btn" data-act="edit-post" data-id="' + p.id + '">수정</button>' +
+          '<button class="icon-btn danger" data-act="del-post" data-id="' + p.id + '">삭제</button>' +
+        '</div>';
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById('postForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const publish_date = document.getElementById('po-date').value;
+    const title = document.getElementById('po-title').value.trim();
+    const content = document.getElementById('po-content').value.trim();
+    if (!publish_date || !title || !content) return;
+    const { error } = await sb.from('posts').insert({ publish_date, title, content });
+    if (error) { toast('등록 실패: ' + error.message); return; }
+    toast('글이 등록됐어요');
+    e.target.reset();
+    loadPosts();
+  });
+
+  document.getElementById('postListAdmin').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const act = btn.dataset.act;
+    const cached = (window._postCache || {})[id];
+
+    if (act === 'copy-post'){
+      if (!cached) return;
+      const text = cached.title + '\n\n' + cached.content;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('복사됐어요! 블로그에 붙여넣으세요');
+      } catch (err) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast('복사됐어요! 블로그에 붙여넣으세요');
+      }
+    } else if (act === 'del-post'){
+      if (!confirm('이 글을 삭제할까요?')) return;
+      const { error } = await sb.from('posts').delete().eq('id', id);
+      if (error) { toast('삭제 실패: ' + error.message); return; }
+      toast('삭제됐어요');
+      loadPosts();
+    } else if (act === 'edit-post'){
+      if (!cached) return;
+      const newTitle = prompt('제목 수정', cached.title);
+      if (newTitle === null) return;
+      const newContent = prompt('본문 수정', cached.content);
+      if (newContent === null) return;
+      const newDate = prompt('공개 날짜 수정 (YYYY-MM-DD)', cached.publish_date);
+      if (newDate === null) return;
+      const { error } = await sb.from('posts').update({
+        title: newTitle.trim(), content: newContent.trim(), publish_date: newDate.trim()
+      }).eq('id', id);
+      if (error) { toast('수정 실패: ' + error.message); return; }
+      toast('수정됐어요');
+      loadPosts();
+    }
   });
 </script>
 </body>
