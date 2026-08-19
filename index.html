@@ -3,7 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>한솔어린이집 | 쑥쑥 자라는 아이들</title>
+<title>한솔어린이집 | 부산 부산진구 가야동 어린이집</title>
+
+<!-- ▼▼ 검색·공유 설정 ▼▼ -->
+<!-- ※ 아래 두 줄의 주소를 실제 홈페이지 주소로 바꿔주세요 (예: https://hansol-daycare.vercel.app) -->
+<meta name="description" content="부산 부산진구 가야동 한솔어린이집입니다. 0~2세 영아 전담 보육, 07:30~19:30 운영. 원장 15년 경력, 유아교육 석사. 견학·입학 상담 문의 051-893-0861">
+<meta name="keywords" content="가야동 어린이집, 부산진구 어린이집, 부산 어린이집, 가야동 영아반, 한솔어린이집">
+<link rel="canonical" href="https://여기에-내-홈페이지-주소.vercel.app/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="한솔어린이집">
+<meta property="og:title" content="한솔어린이집 | 부산진구 가야동">
+<meta property="og:description" content="아이를 존중하는 보육, 부모가 신뢰하는 어린이집. 0~2세 영아 전담 · 07:30~19:30 운영">
+<meta property="og:url" content="https://여기에-내-홈페이지-주소.vercel.app/">
+<!-- ※ 아래 og:image 는 관리자페이지에 올린 사진 주소로 바꿔주세요 (없으면 이 줄을 지우셔도 됩니다) -->
+<meta property="og:image" content="">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- ※ 네이버 서치어드바이저에서 받은 인증 코드를 아래 content="" 안에 붙여넣으세요 -->
+<meta name="naver-site-verification" content="">
+<!-- ▲▲ 검색·공유 설정 ▲▲ -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ChildCare",
+  "name": "한솔어린이집",
+  "description": "부산 부산진구 가야동에 위치한 어린이집. 0~2세 영아 전담 보육.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "가야공원로 40번길 10",
+    "addressLocality": "부산진구",
+    "addressRegion": "부산광역시",
+    "addressCountry": "KR"
+  },
+  "telephone": "+82-51-893-0861",
+  "openingHours": "Mo-Fr 07:30-19:30"
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -319,22 +357,60 @@
   }
 
   /* ===== Blog / Posts ===== */
-  .post-list{display:flex;flex-direction:column;gap:16px;}
+  .post-list{display:flex;flex-direction:column;gap:22px;}
   .post-card{
-    background:var(--card);border:1px solid var(--line);border-radius:20px;
-    padding:24px 26px;cursor:pointer;transition:box-shadow .2s, transform .2s;
+    position:relative;
+    background:#FFFEFB;
+    border:1px solid rgba(91,65,48,0.10);
+    border-radius:3px 3px 16px 16px;
+    padding:34px 30px 26px;
+    cursor:pointer;
+    transition:box-shadow .25s, transform .25s;
+    box-shadow:0 10px 24px rgba(91,65,48,0.10), 0 1px 0 rgba(91,65,48,0.04);
   }
-  .post-card:hover{box-shadow:0 8px 22px rgba(91,65,48,0.10);transform:translateY(-2px);}
+  .post-card:nth-child(odd){transform:rotate(-0.35deg);}
+  .post-card:nth-child(even){transform:rotate(0.35deg);}
+  .post-card::before{
+    content:'';position:absolute;top:-11px;left:50%;
+    transform:translateX(-50%) rotate(-2deg);
+    width:78px;height:24px;
+    background:rgba(245,166,35,0.42);
+    border:1px solid rgba(224,142,11,0.28);
+    box-shadow:0 2px 5px rgba(91,65,48,0.12);
+  }
+  .post-card:hover{
+    box-shadow:0 16px 34px rgba(91,65,48,0.16);
+    transform:translateY(-3px) rotate(0deg);
+  }
   .post-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;}
-  .post-title{margin:0;font-size:20px;color:var(--brown);font-family:'Gaegu','Noto Sans KR',sans-serif;}
-  .post-date{font-size:13px;color:var(--brown-soft);flex:none;}
-  .post-excerpt{margin:8px 0 0;font-size:15px;color:var(--brown-soft);line-height:1.7;}
-  .post-body{
-    display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
-    font-size:16px;color:var(--brown);line-height:1.9;white-space:pre-wrap;
+  .post-title{
+    margin:0;font-size:23px;color:var(--brown);
+    font-family:'Gaegu','Noto Sans KR',sans-serif;line-height:1.4;
   }
+  .post-date{font-size:13px;color:var(--brown-soft);flex:none;}
+  .post-excerpt{margin:10px 0 0;font-size:15px;color:var(--brown-soft);line-height:1.75;}
+  .post-body{
+    display:none;margin-top:18px;padding-top:20px;
+    border-top:1px dashed rgba(91,65,48,0.18);
+    font-size:16.5px;color:#4A3428;line-height:2.05;white-space:pre-wrap;
+    background-image:repeating-linear-gradient(
+      to bottom, transparent, transparent 33px, rgba(91,65,48,0.055) 34px
+    );
+  }
+  .post-card.open{transform:rotate(0deg);}
   .post-card.open .post-body{display:block;}
   .post-card.open .post-excerpt{display:none;}
+  .post-share{
+    display:inline-block;margin-top:22px;padding:9px 18px;border:none;cursor:pointer;
+    border-radius:100px;background:var(--cream-deep);color:var(--honey-deep);
+    font-family:'Noto Sans KR';font-size:13px;font-weight:700;white-space:nowrap;
+  }
+  .post-share:hover{background:var(--honey);color:#fff;}
+  @media (max-width:700px){
+    .post-card{padding:30px 20px 22px;}
+    .post-title{font-size:21px;}
+    .post-body{font-size:16px;line-height:1.95;background-image:none;}
+  }
   .post-toggle{
     margin-top:12px;font-size:14px;font-weight:700;color:var(--honey-deep);
   }
@@ -792,8 +868,8 @@
   <section id="blog">
     <div class="wrap">
       <div class="section-head reveal">
-        <span class="eyebrow">📝 원장님 육아 이야기</span>
-        <h2>15년 경력이 전하는 이야기</h2>
+        <span class="eyebrow">📝 육아 이야기</span>
+        <h2>육아 이야기</h2>
         <p>어린이집에서 아이들을 만나며 알게 된 것들을 조금씩 나눕니다.</p>
       </div>
       <div class="post-list reveal" id="postList"></div>
@@ -1106,7 +1182,13 @@
       return;
     }
 
+    const openId = new URLSearchParams(location.search).get('post');
     let shown = 5;
+    if (openId){
+      const idx = data.findIndex(p => String(p.id) === openId);
+      if (idx >= shown) shown = idx + 1;
+    }
+
     function draw(){
       listEl.innerHTML = '';
       data.slice(0, shown).forEach(p => {
@@ -1120,12 +1202,46 @@
             '<span class="post-date">' + d[0] + '.' + d[1] + '.' + d[2] + '</span>' +
           '</div>' +
           '<p class="post-excerpt">' + excerpt + '</p>' +
-          '<div class="post-body">' + p.content + '</div>' +
+          '<div class="post-body">' + p.content +
+            '<button type="button" class="post-share" data-id="' + p.id + '" data-title="' +
+              String(p.title).replace(/"/g, '&quot;') + '">🔗 이 글 링크 복사</button>' +
+          '</div>' +
           '<div class="post-toggle">자세히 보기 →</div>';
-        card.addEventListener('click', () => {
+
+        card.addEventListener('click', (ev) => {
+          if (ev.target.closest('.post-share')) return;
           const open = card.classList.toggle('open');
           card.querySelector('.post-toggle').textContent = open ? '접기 ↑' : '자세히 보기 →';
         });
+
+        card.querySelector('.post-share').addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const btn = ev.currentTarget;
+          const url = location.origin + location.pathname + '?post=' + btn.dataset.id;
+          try {
+            if (navigator.share){
+              await navigator.share({ title: btn.dataset.title, url: url });
+              return;
+            }
+            await navigator.clipboard.writeText(url);
+          } catch (e) {
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e2) {}
+            document.body.removeChild(ta);
+          }
+          btn.textContent = '✅ 링크가 복사됐어요';
+          setTimeout(() => { btn.textContent = '🔗 이 글 링크 복사'; }, 2000);
+        });
+
+        if (openId && String(p.id) === openId){
+          card.classList.add('open');
+          card.querySelector('.post-toggle').textContent = '접기 ↑';
+          setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+        }
+
         listEl.appendChild(card);
       });
       moreBtn.style.display = shown < data.length ? 'inline-flex' : 'none';
