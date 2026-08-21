@@ -151,6 +151,11 @@
   .gallery-admin-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
   .gallery-admin-item .gi-body{padding:8px;}
   .gallery-admin-item input{font-size:12px;padding:6px 8px;margin-bottom:6px;}
+  .gallery-admin-item .folder-input{
+    width:100%;font-size:12px;padding:6px 8px;margin-bottom:6px;
+    border:1.5px solid var(--line);border-radius:8px;background:var(--cream);
+    font-family:'Noto Sans KR';color:var(--brown);
+  }
   .gallery-admin-item .gi-actions{display:flex;gap:4px;}
   .gallery-admin-item .icon-btn{flex:1;padding:5px 4px;font-size:11px;}
 
@@ -266,6 +271,10 @@
           <div class="field">
             <label>후기 내용</label>
             <textarea id="rv-text" placeholder="후기 내용을 입력해주세요" required></textarea>
+            <p style="font-size:12.5px;color:var(--brown-soft);margin:2px 0 0;line-height:1.7;">
+              💡 강조하고 싶은 부분을 <b>별표 두 개</b>로 감싸면 형광펜이 칠해져요.<br>
+              예) 원장님 덕분에 <b>**정말 큰 힘이 됐어요**</b> → 뒷부분에 노란 형광펜
+            </p>
           </div>
           <button type="submit" class="btn btn-primary">후기 추가</button>
         </form>
@@ -274,13 +283,21 @@
 
     <div class="panel" id="panel-gallery">
       <div class="card">
-        <h3>등록된 사진</h3>
-        <p class="sub">캡션을 수정한 뒤 다른 곳을 클릭하면 자동 저장돼요.</p>
-        <div class="gallery-grid-admin" id="galleryListAdmin"></div>
-        <p class="empty-msg" id="galleryEmptyMsg" style="display:none;">등록된 사진이 없습니다.</p>
+        <h3>🏡 어린이집 경관 사진</h3>
+        <p class="sub">사진 이름을 고친 뒤 다른 곳을 클릭하면 자동 저장돼요.</p>
+        <div class="gallery-grid-admin" id="sceneryListAdmin"></div>
+        <p class="empty-msg" id="sceneryEmptyMsg" style="display:none;">등록된 경관 사진이 없습니다.</p>
       </div>
+
       <div class="card">
-        <h3>새 사진 추가</h3>
+        <h3>🎨 어린이집 활동 사진</h3>
+        <p class="sub">폴더를 바꾸면 홈페이지에서 해당 폴더로 옮겨져요. 활동 사진은 이름을 따로 적지 않아요.</p>
+        <div id="activityByFolder"></div>
+        <p class="empty-msg" id="activityEmptyMsg" style="display:none;">등록된 활동 사진이 없습니다.</p>
+      </div>
+
+      <div class="card">
+        <h3>➕ 새 사진 추가</h3>
         <div class="field">
           <label>구분</label>
           <select id="gal-category">
@@ -288,14 +305,22 @@
             <option value="활동">어린이집 활동</option>
           </select>
         </div>
-        <div class="field">
-          <label>캡션(사진 이름)</label>
+        <div class="field" id="folderField" style="display:none;">
+          <label>폴더</label>
+          <select id="gal-folder">
+            <option value="일상">일상 사진</option>
+            <option value="활동">활동 사진</option>
+            <option value="현장체험학습">현장체험학습 사진</option>
+          </select>
+        </div>
+        <div class="field" id="captionField">
+          <label>사진 이름</label>
           <input type="text" id="gal-caption" placeholder="예: 실내 놀이터">
         </div>
         <div class="upload-box">
           사진 파일을 선택해주세요 (자동으로 웹용 크기로 줄여서 업로드돼요)
           <br>
-          <input type="file" id="gal-file" accept="image/*">
+          <input type="file" id="gal-file" accept="image/*" multiple>
           <p id="uploadStatus" style="margin-top:8px;font-size:12px;"></p>
         </div>
       </div>
@@ -474,16 +499,33 @@
     const list = document.getElementById('reviewList');
     if (error) { list.innerHTML = '<p class="empty-msg">불러오기 실패: ' + error.message + '</p>'; return; }
     if (!data || data.length === 0) { list.innerHTML = '<p class="empty-msg">등록된 후기가 없습니다.</p>'; return; }
-    list.innerHTML = '';
-    data.forEach(rv => {
+
+    const sorted = data.slice().sort((a,b) => {
+      const pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
+      if (pa !== pb) return pb - pa;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+    const pinnedCount = data.filter(r => r.pinned).length;
+
+    list.innerHTML =
+      '<p style="background:var(--cream-deep);border-radius:12px;padding:10px 14px;' +
+      'font-size:13px;font-weight:700;color:var(--brown);margin:0 0 14px;">' +
+      '📌 고정 ' + pinnedCount + '개 / 전체 ' + data.length + '개 · 고정한 후기가 홈페이지 맨 앞에 나와요' +
+      '</p>';
+
+    sorted.forEach(rv => {
       const row = document.createElement('div');
       row.className = 'item-row';
       row.innerHTML =
         '<div class="item-body">' +
-          '<p class="item-meta">' + escapeHtml(rv.name) + ' · ' + escapeHtml(rv.year) + '</p>' +
+          '<p class="item-meta">' +
+            (rv.pinned ? '<span style="color:var(--pine);font-weight:700;">📌 고정</span> · ' : '') +
+            escapeHtml(rv.name) + ' · ' + escapeHtml(rv.year) + '</p>' +
           '<p class="item-desc">' + escapeHtml(rv.text) + '</p>' +
         '</div>' +
         '<div class="item-actions">' +
+          '<button class="icon-btn" data-act="pin-review" data-id="' + rv.id + '" data-pinned="' + (rv.pinned ? '1' : '0') + '">' +
+            (rv.pinned ? '고정해제' : '고정') + '</button>' +
           '<button class="icon-btn" data-act="edit-review" data-id="' + rv.id + '">수정</button>' +
           '<button class="icon-btn danger" data-act="del-review" data-id="' + rv.id + '">삭제</button>' +
         '</div>';
@@ -510,6 +552,22 @@
     const btn = e.target.closest('button');
     if (!btn) return;
     const id = btn.dataset.id;
+    if (btn.dataset.act === 'pin-review'){
+      const isPinned = btn.dataset.pinned === '1';
+      if (!isPinned){
+        const { data: pinnedRows } = await sb.from('reviews').select('id').eq('pinned', true);
+        if (pinnedRows && pinnedRows.length >= 3){
+          alert('고정은 최대 3개까지 가능해요.\n다른 후기를 먼저 고정 해제해주세요.');
+          return;
+        }
+      }
+      const { error } = await sb.from('reviews').update({ pinned: !isPinned }).eq('id', id);
+      if (error) { toast('실패: ' + error.message); return; }
+      toast(isPinned ? '고정 해제됐어요' : '고정됐어요');
+      loadReviews();
+      return;
+    }
+
     if (btn.dataset.act === 'del-review'){
       if (!confirm('이 후기를 삭제할까요?')) return;
       const { error } = await sb.from('reviews').delete().eq('id', id);
@@ -535,50 +593,94 @@
     }
   });
 
-  async function loadGallery(){
-    const { data, error } = await sb.from('gallery').select('*').order('sort_order', { ascending: true });
-    const grid = document.getElementById('galleryListAdmin');
-    const emptyMsg = document.getElementById('galleryEmptyMsg');
-    if (error) { grid.innerHTML = ''; emptyMsg.textContent = '불러오기 실패: ' + error.message; emptyMsg.style.display = 'block'; return; }
-    grid.innerHTML = '';
-    emptyMsg.style.display = (!data || data.length === 0) ? 'block' : 'none';
-    if (!data) return;
-    data.forEach((item, idx) => {
-      const div = document.createElement('div');
-      div.className = 'gallery-admin-item';
-      const cat = item.category || '경관';
-      div.innerHTML =
-        '<img src="' + item.image_url + '" alt="">' +
-        '<div class="gi-body">' +
-          '<p style="font-size:11px;color:var(--honey-deep);font-weight:700;margin:0 0 4px;">' + cat + '</p>' +
-          '<input type="text" value="' + escapeAttr(item.caption) + '" data-id="' + item.id + '" class="cap-input">' +
-          '<div class="gi-actions">' +
-            '<button class="icon-btn" data-act="up" data-id="' + item.id + '" data-idx="' + idx + '" ' + (idx === 0 ? 'disabled' : '') + '>↑</button>' +
-            '<button class="icon-btn" data-act="down" data-id="' + item.id + '" data-idx="' + idx + '" ' + (idx === data.length - 1 ? 'disabled' : '') + '>↓</button>' +
-            '<button class="icon-btn danger" data-act="del-photo" data-id="' + item.id + '">삭제</button>' +
-          '</div>' +
-        '</div>';
-      grid.appendChild(div);
-    });
-    window._galleryCache = data;
+  const FOLDERS = ['일상','활동','현장체험학습'];
+
+  function photoTile(item, idx, arr, opts){
+    const div = document.createElement('div');
+    div.className = 'gallery-admin-item';
+    let body = '';
+    if (opts.folder){
+      body += '<select class="folder-input" data-id="' + item.id + '">' +
+        FOLDERS.map(f => '<option value="' + f + '"' +
+          ((item.folder || '일상') === f ? ' selected' : '') + '>' + f + ' 사진</option>').join('') +
+        '</select>';
+    } else {
+      body += '<input type="text" value="' + escapeAttr(item.caption) + '" data-id="' + item.id + '" class="cap-input" placeholder="사진 이름">';
+    }
+    body += '<div class="gi-actions">' +
+      '<button class="icon-btn" data-act="up" data-id="' + item.id + '" data-idx="' + idx + '" data-scope="' + opts.scope + '" ' + (idx === 0 ? 'disabled' : '') + '>↑</button>' +
+      '<button class="icon-btn" data-act="down" data-id="' + item.id + '" data-idx="' + idx + '" data-scope="' + opts.scope + '" ' + (idx === arr.length - 1 ? 'disabled' : '') + '>↓</button>' +
+      '<button class="icon-btn danger" data-act="del-photo" data-id="' + item.id + '">삭제</button>' +
+      '</div>';
+    div.innerHTML = '<img src="' + item.image_url + '" alt="">' + '<div class="gi-body">' + body + '</div>';
+    return div;
   }
 
-  document.getElementById('galleryListAdmin').addEventListener('change', async (e) => {
-    if (e.target.classList.contains('cap-input')){
-      const id = e.target.dataset.id;
-      const { error } = await sb.from('gallery').update({ caption: e.target.value }).eq('id', id);
-      if (error) toast('저장 실패: ' + error.message);
-      else toast('캡션 저장됨');
-    }
-  });
+  async function loadGallery(){
+    const { data, error } = await sb.from('gallery').select('*').order('sort_order', { ascending: true });
+    const sGrid = document.getElementById('sceneryListAdmin');
+    const sEmpty = document.getElementById('sceneryEmptyMsg');
+    const aBox = document.getElementById('activityByFolder');
+    const aEmpty = document.getElementById('activityEmptyMsg');
 
-  document.getElementById('galleryListAdmin').addEventListener('click', async (e) => {
+    if (error) {
+      sGrid.innerHTML = ''; aBox.innerHTML = '';
+      sEmpty.textContent = '불러오기 실패: ' + error.message; sEmpty.style.display = 'block';
+      return;
+    }
+    const all = data || [];
+    window._galleryCache = all;
+
+    /* 경관 */
+    const scenery = all.filter(i => (i.category || '경관') === '경관');
+    window._sceneryCache = scenery;
+    sGrid.innerHTML = '';
+    sEmpty.style.display = scenery.length === 0 ? 'block' : 'none';
+    scenery.forEach((item, idx) => sGrid.appendChild(photoTile(item, idx, scenery, { folder:false, scope:'scenery' })));
+
+    /* 활동 — 폴더별 */
+    const activity = all.filter(i => i.category === '활동');
+    aBox.innerHTML = '';
+    aEmpty.style.display = activity.length === 0 ? 'block' : 'none';
+    window._folderCache = {};
+    FOLDERS.forEach(f => {
+      const items = activity.filter(i => (i.folder || '일상') === f);
+      window._folderCache[f] = items;
+      const wrap = document.createElement('div');
+      wrap.style.marginBottom = '22px';
+      wrap.innerHTML = '<p style="font-weight:700;font-size:14px;margin:0 0 8px;">📁 ' + f + ' 사진 <span style="color:var(--brown-soft);font-weight:400;">(' + items.length + '장)</span></p>';
+      const grid = document.createElement('div');
+      grid.className = 'gallery-grid-admin';
+      if (items.length === 0){
+        grid.innerHTML = '<p class="empty-msg" style="grid-column:1/-1;">아직 사진이 없어요.</p>';
+      } else {
+        items.forEach((item, idx) => grid.appendChild(photoTile(item, idx, items, { folder:true, scope:'f:' + f })));
+      }
+      wrap.appendChild(grid);
+      aBox.appendChild(wrap);
+    });
+  }
+
+  async function galleryChange(e){
+    if (e.target.classList.contains('cap-input')){
+      const { error } = await sb.from('gallery').update({ caption: e.target.value }).eq('id', e.target.dataset.id);
+      toast(error ? '저장 실패: ' + error.message : '사진 이름 저장됨');
+    }
+    if (e.target.classList.contains('folder-input')){
+      const { error } = await sb.from('gallery').update({ folder: e.target.value }).eq('id', e.target.dataset.id);
+      if (error) { toast('저장 실패: ' + error.message); return; }
+      toast('폴더 옮김');
+      loadGallery();
+    }
+  }
+
+  async function galleryClick(e){
     const btn = e.target.closest('button');
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
     const act = btn.dataset.act;
     const idx = Number(btn.dataset.idx);
-    const cache = window._galleryCache || [];
+    const scope = btn.dataset.scope;
 
     if (act === 'del-photo'){
       if (!confirm('이 사진을 삭제할까요?')) return;
@@ -586,69 +688,101 @@
       if (error) { toast('삭제 실패: ' + error.message); return; }
       toast('삭제됐어요');
       loadGallery();
-    } else if (act === 'up' && idx > 0){
-      const a = cache[idx], b = cache[idx - 1];
-      await sb.from('gallery').update({ sort_order: b.sort_order }).eq('id', a.id);
-      await sb.from('gallery').update({ sort_order: a.sort_order }).eq('id', b.id);
-      loadGallery();
-    } else if (act === 'down' && idx < cache.length - 1){
-      const a = cache[idx], b = cache[idx + 1];
-      await sb.from('gallery').update({ sort_order: b.sort_order }).eq('id', a.id);
-      await sb.from('gallery').update({ sort_order: a.sort_order }).eq('id', b.id);
-      loadGallery();
+      return;
     }
+
+    let arr = [];
+    if (scope === 'scenery') arr = window._sceneryCache || [];
+    else if (scope && scope.indexOf('f:') === 0) arr = (window._folderCache || {})[scope.slice(2)] || [];
+    if (arr.length === 0) return;
+
+    const j = act === 'up' ? idx - 1 : idx + 1;
+    if (j < 0 || j >= arr.length) return;
+    const a = arr[idx], b = arr[j];
+    await sb.from('gallery').update({ sort_order: b.sort_order }).eq('id', a.id);
+    await sb.from('gallery').update({ sort_order: a.sort_order }).eq('id', b.id);
+    loadGallery();
+  }
+
+  ['sceneryListAdmin','activityByFolder'].forEach(idName => {
+    const el = document.getElementById(idName);
+    el.addEventListener('change', galleryChange);
+    el.addEventListener('click', galleryClick);
   });
 
-  document.getElementById('gal-file').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  /* 구분에 따라 입력칸 바꾸기 */
+  const catSel = document.getElementById('gal-category');
+  function syncGalleryFields(){
+    const isAct = catSel.value === '활동';
+    document.getElementById('folderField').style.display = isAct ? '' : 'none';
+    document.getElementById('captionField').style.display = isAct ? 'none' : '';
+  }
+  catSel.addEventListener('change', syncGalleryFields);
+  syncGalleryFields();
+
+  /* 업로드 (여러 장 가능) */
+  document.getElementById('gal-file').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     const captionInput = document.getElementById('gal-caption');
-    const caption = captionInput.value.trim() || file.name;
-    const category = document.getElementById('gal-category').value;
+    const category = catSel.value;
+    const folder = category === '활동' ? document.getElementById('gal-folder').value : null;
     const statusEl = document.getElementById('uploadStatus');
-    statusEl.textContent = '업로드 중...';
 
-    const reader = new FileReader();
-    reader.onload = function(ev){
-      const img = new Image();
-      img.onload = async function(){
-        const maxW = 1200;
-        let w = img.width, h = img.height;
-        if (w > maxW){ h = Math.round(h * (maxW / w)); w = maxW; }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
+    const { data: existing } = await sb.from('gallery')
+      .select('sort_order').order('sort_order', { ascending: false }).limit(1);
+    let order = existing && existing[0] ? existing[0].sort_order + 1 : 0;
 
-        canvas.toBlob(async (blob) => {
-          const fileName = Date.now() + '-' + Math.random().toString(36).slice(2) + '.jpg';
-          const { error: uploadError } = await sb.storage.from('photos').upload(fileName, blob, {
-            contentType: 'image/jpeg'
-          });
-          if (uploadError) {
-            statusEl.textContent = '업로드 실패: ' + uploadError.message;
-            return;
-          }
-          const { data: urlData } = sb.storage.from('photos').getPublicUrl(fileName);
-          const { data: existing } = await sb.from('gallery').select('sort_order').order('sort_order', { ascending: false }).limit(1);
-          const nextOrder = existing && existing[0] ? existing[0].sort_order + 1 : 0;
-          const { error: insertError } = await sb.from('gallery').insert({
-            image_url: urlData.publicUrl, caption: caption, sort_order: nextOrder, category: category
-          });
-          if (insertError) {
-            statusEl.textContent = '저장 실패: ' + insertError.message;
-            return;
-          }
-          statusEl.textContent = '업로드 완료!';
-          captionInput.value = '';
-          document.getElementById('gal-file').value = '';
-          loadGallery();
-        }, 'image/jpeg', 0.75);
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
+    for (let n = 0; n < files.length; n++){
+      const file = files[n];
+      statusEl.textContent = '업로드 중... (' + (n + 1) + '/' + files.length + ')';
+      try {
+        const blob = await shrink(file);
+        const fileName = Date.now() + '-' + Math.random().toString(36).slice(2) + '.jpg';
+        const { error: upErr } = await sb.storage.from('photos').upload(fileName, blob, { contentType: 'image/jpeg' });
+        if (upErr){ statusEl.textContent = '업로드 실패: ' + upErr.message; return; }
+        const { data: urlData } = sb.storage.from('photos').getPublicUrl(fileName);
+        const row = {
+          image_url: urlData.publicUrl,
+          sort_order: order++,
+          category: category,
+          caption: category === '활동' ? '' : (captionInput.value.trim() || file.name)
+        };
+        if (folder) row.folder = folder;
+        const { error: insErr } = await sb.from('gallery').insert(row);
+        if (insErr){ statusEl.textContent = '저장 실패: ' + insErr.message; return; }
+      } catch(err){
+        statusEl.textContent = '오류: ' + err.message;
+        return;
+      }
+    }
+    statusEl.textContent = files.length + '장 업로드 완료!';
+    captionInput.value = '';
+    document.getElementById('gal-file').value = '';
+    loadGallery();
   });
+
+  function shrink(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 1200;
+          let w = img.width, h = img.height;
+          if (w > maxW){ h = Math.round(h * (maxW / w)); w = maxW; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          canvas.toBlob(b => b ? resolve(b) : reject(new Error('이미지 변환 실패')), 'image/jpeg', 0.75);
+        };
+        img.onerror = () => reject(new Error('이미지를 읽을 수 없어요'));
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => reject(new Error('파일을 읽을 수 없어요'));
+      reader.readAsDataURL(file);
+    });
+  }
 
   /* ---------- Posts ---------- */
   function todayStr(){
