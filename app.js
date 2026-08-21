@@ -54,23 +54,54 @@ const lbImg = document.getElementById('lbImg');
 const lbCap = document.getElementById('lbCap');
 let lbList = [], lbIdx = 0;
 
+let lbToken = 0;
 function lbShow(i){
   if (!lb || lbList.length === 0) return;
   lbIdx = (i + lbList.length) % lbList.length;
-  lbImg.src = lbList[lbIdx].url;
-  lbImg.alt = lbList[lbIdx].cap || '';
-  lbCap.textContent = lbList[lbIdx].cap || '';
+  const item = lbList[lbIdx];
+  lbCap.textContent = item.cap || '';
+  lbImg.alt = item.cap || '';
+  lbImg.classList.remove('ready');
+  const loading = document.getElementById('lbLoading');
+  if (loading) loading.classList.add('on');
+
+  const token = ++lbToken;
+  const pre = new Image();
+  pre.decoding = 'async';
+  pre.onload = () => {
+    if (token !== lbToken) return;
+    lbImg.src = item.url;
+    lbImg.classList.add('ready');
+    if (loading) loading.classList.remove('on');
+    /* 다음 사진 미리 받아두기 */
+    if (lbList.length > 1){
+      const nx = new Image();
+      nx.src = lbList[(lbIdx + 1) % lbList.length].url;
+    }
+  };
+  pre.onerror = () => {
+    if (token !== lbToken) return;
+    lbImg.src = item.url;
+    lbImg.classList.add('ready');
+    if (loading) loading.classList.remove('on');
+  };
+  pre.src = item.url;
 }
 function lbOpen(list, i){
   if (!lb) return;
   lbList = list; lbShow(i);
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('locked');
 }
 function lbClose(){
   if (!lb) return;
   lb.classList.remove('open');
-  document.body.style.overflow = '';
+  const dm = document.getElementById('dayModal');
+  if (!dm || !dm.classList.contains('open')){
+    document.body.style.overflow = '';
+    document.body.classList.remove('locked');
+  }
 }
 if (lb){
   document.getElementById('lbClose').addEventListener('click', lbClose);
@@ -328,12 +359,16 @@ function openDayModal(){
   const modal = document.getElementById('dayModal');
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('locked');
 }
 function closeDayModal(){
   const modal = document.getElementById('dayModal');
   if (!modal) return;
   modal.classList.remove('open');
-  if (!lb || !lb.classList.contains('open')) document.body.style.overflow = '';
+  if (!lb || !lb.classList.contains('open')){
+    document.body.style.overflow = '';
+    document.body.classList.remove('locked');
+  }
   document.querySelectorAll('.day-folder').forEach(x => x.classList.remove('active'));
 }
 
