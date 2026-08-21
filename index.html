@@ -17,21 +17,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="naver-site-verification" content="681656d1107761d7eaeeafe89e227ad632d68845">
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ChildCare",
-  "name": "한솔어린이집",
-  "description": "부산 부산진구 가야동에 위치한 어린이집. 0~2세 영아 전담 보육.",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "가야공원로 40번길 10",
-    "addressLocality": "부산진구",
-    "addressRegion": "부산광역시",
-    "addressCountry": "KR"
-  },
-  "telephone": "+82-51-893-0861",
-  "openingHours": "Mo-Fr 07:30-19:30"
-}
+{"@context":"https://schema.org","@type":"ChildCare","name":"한솔어린이집",
+"description":"부산 부산진구 가야동에 위치한 어린이집.",
+"address":{"@type":"PostalAddress","streetAddress":"가야공원로 40번길 10","addressLocality":"부산진구","addressRegion":"부산광역시","addressCountry":"KR"},
+"telephone":"+82-51-893-0861","openingHours":"Mo-Fr 07:30-19:30"}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,9 +40,9 @@
       <span class="logo-text">한솔어린이집</span>
     </a>
     <nav class="nav" id="nav">
-      <a href="index.html#intro">소개</a>
-      <a href="reviews.html">후기</a>
-      <a href="gallery.html">둘러보기</a>
+      <a href="index.html#intro">어린이집 소개</a>
+      <a href="reviews.html">학부모님 후기</a>
+      <a href="index.html#scenery">어린이집 둘러보기</a>
       <a href="index.html#rooms">우리 반</a>
       <a href="index.html#teachers">선생님</a>
       <a href="stories.html">육아 이야기</a>
@@ -93,7 +82,8 @@
     <p class="hero-sub hero-in h3">아이를 존중하는 보육,<br>부모가 신뢰하는 어린이집을 만들어갑니다.</p>
     <div class="hero-actions hero-in h4">
       <a href="#contact" class="btn btn-sun">상담 문의</a>
-      <a href="#gallery" class="btn btn-white">어린이집 둘러보기</a>
+      <a href="reviews.html" class="btn btn-pine">학부모님 후기</a>
+      <a href="#scenery" class="btn btn-white">어린이집 둘러보기</a>
     </div>
   </div>
 
@@ -211,35 +201,42 @@
   </div></div>
 </section>
 
-  <!-- 후기 요약 -->
-  <section class="scene tint-berry">
-    <div class="wrap"><div class="scene-inner">
-      <div class="scene-head rise">
-        <span class="eyebrow berry">학부모님 후기</span>
-        <h2>먼저 다녀간 부모님들의 이야기</h2>
-        <p>한솔어린이집을 거쳐간 아이들과 부모님이 남겨주신 말들입니다.</p>
-      </div>
-      <div class="teaser-reviews rise d1" id="reviewTeaser"></div>
-      <div class="more-center rise d2">
-        <a href="reviews.html" class="btn btn-white">후기 전체 보기 →</a>
-      </div>
-    </div></div>
-  </section>
-
-  <!-- 둘러보기 요약 -->
-  <section class="scene">
-    <div class="wrap">
-      <div class="scene-head rise">
-        <span class="eyebrow sky">둘러보기</span>
-        <h2>어린이집을 미리 만나보세요</h2>
-        <p>아이들이 지내는 공간과 활동하는 모습입니다.</p>
-      </div>
-      <div class="teaser-gallery rise d1" id="galleryTeaser"></div>
-      <div class="more-center rise d2">
-        <a href="gallery.html" class="btn btn-white">사진 전체 보기 →</a>
-      </div>
+<section class="scene tint-berry">
+  <div class="wrap"><div class="scene-inner">
+    <div class="scene-head rise">
+      <span class="eyebrow berry">학부모님 후기</span>
+      <h2>먼저 다녀간 부모님들의 이야기</h2>
+      <p>한솔어린이집을 거쳐간 아이들과 부모님이 남겨주신 말들입니다.</p>
     </div>
-  </section>
+    <div class="teaser-reviews rise d1" id="reviewTeaser"></div>
+    <div class="more-center rise d2">
+      <a href="reviews.html" class="btn btn-white">후기 전체 보기 →</a>
+    </div>
+  </div></div>
+</section>
+
+<section class="scene" id="scenery">
+  <div class="wrap">
+    <div class="scene-head rise">
+      <span class="eyebrow sky">어린이집 둘러보기</span>
+      <h2>어린이집 경관</h2>
+      <p>아이들이 지내는 공간입니다. 사진을 누르면 크게 보실 수 있어요.</p>
+    </div>
+    <div class="gallery-grid rise d1" id="sceneryGrid"></div>
+  </div>
+</section>
+
+<section class="scene tint-sun" id="day">
+  <div class="wrap"><div class="scene-inner">
+    <div class="scene-head rise">
+      <span class="eyebrow sun">아이들의 하루</span>
+      <h2>아이들의 하루</h2>
+      <p>폴더를 누르면 사진을 보실 수 있어요.</p>
+    </div>
+    <div class="day-folders rise d1" id="dayFolders"></div>
+    <div id="dayViewer"></div>
+  </div></div>
+</section>
 <section class="scene tint-leaf" id="rooms">
   <div class="wrap"><div class="scene-inner">
     <div class="scene-head rise">
@@ -441,20 +438,19 @@
   </div>
 </section>
 
-  <!-- 육아 이야기 요약 -->
-  <section class="scene tint-warm">
-    <div class="wrap"><div class="scene-inner">
-      <div class="scene-head rise">
-        <span class="eyebrow">육아 이야기</span>
-        <h2>육아 이야기</h2>
-        <p>어린이집에서 아이들을 만나며 알게 된 것들을 조금씩 나눕니다.</p>
-      </div>
-      <div class="teaser-posts rise d1" id="postTeaser"></div>
-      <div class="more-center rise d2">
-        <a href="stories.html" class="btn btn-white">글 전체 보기 →</a>
-      </div>
-    </div></div>
-  </section>
+<section class="scene tint-warm">
+  <div class="wrap"><div class="scene-inner">
+    <div class="scene-head rise">
+      <span class="eyebrow">육아 이야기</span>
+      <h2>육아 이야기</h2>
+      <p>어린이집에서 아이들을 만나며 알게 된 것들을 조금씩 나눕니다.</p>
+    </div>
+    <div class="teaser-posts rise d1" id="postTeaser"></div>
+    <div class="more-center rise d2">
+      <a href="stories.html" class="btn btn-white">글 전체 보기 →</a>
+    </div>
+  </div></div>
+</section>
 <section class="scene tint-sky" id="notice">
   <div class="wrap"><div class="scene-inner">
     <div class="scene-head rise">
@@ -535,6 +531,7 @@
   </div></div>
 </section>
 </main>
+
 <footer>
   <div class="wrap foot-grid">
     <div>
@@ -545,12 +542,13 @@
     </div>
     <div>
       <p>운영시간 07:30 ~ 19:30</p>
-      <p><a href="reviews.html">학부모 후기</a> · <a href="gallery.html">둘러보기</a> · <a href="stories.html">육아 이야기</a></p>
+      <p><a href="reviews.html">학부모님 후기</a> · <a href="stories.html">육아 이야기</a></p>
       <p class="foot-admin"><a href="admin.html">관리자</a></p>
     </div>
   </div>
   <div class="foot-bottom wrap">© 2026 한솔어린이집</div>
 </footer>
+
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="사진 크게 보기">
   <button class="lb-close" id="lbClose" aria-label="닫기">✕</button>
   <button class="lb-nav lb-prev" id="lbPrev" aria-label="이전 사진">‹</button>

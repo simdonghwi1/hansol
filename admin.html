@@ -177,6 +177,28 @@
     font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;
   }
   .toast.show{opacity:1;}
+
+  /* 경관/활동 전환 버튼 */
+  .gal-switch{display:flex;gap:10px;flex-wrap:wrap;}
+  .gal-tab{
+    flex:1 1 160px;padding:14px 18px;border-radius:14px;
+    border:1.5px solid var(--line);background:var(--cream);
+    font-family:'Noto Sans KR';font-size:15px;font-weight:700;
+    color:var(--brown);cursor:pointer;transition:background .2s,border-color .2s;
+  }
+  .gal-tab.on{background:var(--honey);border-color:var(--honey);color:#fff;}
+
+  .admin-folder{margin-bottom:26px;}
+  .admin-folder:last-child{margin-bottom:0;}
+  .admin-folder-head{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;margin-bottom:10px;flex-wrap:wrap;
+  }
+  .admin-folder-head h4{margin:0;font-size:15px;}
+  .admin-folder-head .cnt{color:var(--brown-soft);font-weight:400;font-size:13px;}
+  .admin-pager{display:flex;align-items:center;gap:8px;}
+  .admin-pager .pg{padding:5px 12px;font-size:14px;}
+  .admin-pager .pg-now{font-size:12.5px;color:var(--brown-soft);min-width:42px;text-align:center;}
 </style>
 </head>
 <body>
@@ -212,10 +234,6 @@
   </header>
 
   <div class="wrap">
-    <div class="notice">
-      <b>실시간 저장</b> — 여기서 추가·수정·삭제하면 <b>바로 홈페이지에 반영</b>돼요. 파일을 다운로드하거나 GitHub에 올릴 필요가 없어요.
-    </div>
-
     <div class="tabs">
       <button class="tab-btn active" data-tab="events">📅 공지사항</button>
       <button class="tab-btn" data-tab="reviews">⭐ 학부모 후기</button>
@@ -283,17 +301,27 @@
 
     <div class="panel" id="panel-gallery">
       <div class="card">
-        <h3>🏡 어린이집 경관 사진</h3>
-        <p class="sub">사진 이름을 고친 뒤 다른 곳을 클릭하면 자동 저장돼요.</p>
-        <div class="gallery-grid-admin" id="sceneryListAdmin"></div>
-        <p class="empty-msg" id="sceneryEmptyMsg" style="display:none;">등록된 경관 사진이 없습니다.</p>
+        <h3>사진 종류를 선택하세요</h3>
+        <div class="gal-switch">
+          <button type="button" class="gal-tab on" data-gal="경관">🏡 경관 사진</button>
+          <button type="button" class="gal-tab" data-gal="활동">🎨 활동 사진</button>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>🎨 어린이집 활동 사진</h3>
-        <p class="sub">폴더를 바꾸면 홈페이지에서 해당 폴더로 옮겨져요. 활동 사진은 이름을 따로 적지 않아요.</p>
-        <div id="activityByFolder"></div>
-        <p class="empty-msg" id="activityEmptyMsg" style="display:none;">등록된 활동 사진이 없습니다.</p>
+      <div id="galScenery">
+        <div class="card">
+          <h3>🏡 어린이집 경관 사진</h3>
+          <p class="sub">사진 이름을 고친 뒤 다른 곳을 클릭하면 자동 저장돼요. 최신 등록순입니다.</p>
+          <div id="sceneryListAdmin"></div>
+        </div>
+      </div>
+
+      <div id="galActivity" style="display:none;">
+        <div class="card">
+          <h3>🎨 어린이집 활동 사진</h3>
+          <p class="sub">폴더를 바꾸면 홈페이지에서 해당 폴더로 옮겨져요. 한 번에 4장씩 넘겨서 보실 수 있어요.</p>
+          <div id="activityByFolder"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -310,7 +338,7 @@
           <select id="gal-folder">
             <option value="일상">일상 사진</option>
             <option value="활동">활동 사진</option>
-            <option value="현장체험학습">현장체험학습 사진</option>
+            <option value="현장체험학습">현장체험학습</option>
           </select>
         </div>
         <div class="field" id="captionField">
@@ -318,7 +346,7 @@
           <input type="text" id="gal-caption" placeholder="예: 실내 놀이터">
         </div>
         <div class="upload-box">
-          사진 파일을 선택해주세요 (자동으로 웹용 크기로 줄여서 업로드돼요)
+          사진 파일을 선택해주세요 (여러 장 한 번에 가능해요)
           <br>
           <input type="file" id="gal-file" accept="image/*" multiple>
           <p id="uploadStatus" style="margin-top:8px;font-size:12px;"></p>
@@ -594,6 +622,18 @@
   });
 
   const FOLDERS = ['일상','활동','현장체험학습'];
+  const ADMIN_PER = 4;
+
+  /* 경관 / 활동 전환 */
+  document.querySelectorAll('.gal-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.gal-tab').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      const isScenery = b.dataset.gal === '경관';
+      document.getElementById('galScenery').style.display = isScenery ? '' : 'none';
+      document.getElementById('galActivity').style.display = isScenery ? 'none' : '';
+    });
+  });
 
   function photoTile(item, idx, arr, opts){
     const div = document.createElement('div');
@@ -602,7 +642,7 @@
     if (opts.folder){
       body += '<select class="folder-input" data-id="' + item.id + '">' +
         FOLDERS.map(f => '<option value="' + f + '"' +
-          ((item.folder || '일상') === f ? ' selected' : '') + '>' + f + ' 사진</option>').join('') +
+          ((item.folder || '일상') === f ? ' selected' : '') + '>' + f + '</option>').join('') +
         '</select>';
     } else {
       body += '<input type="text" value="' + escapeAttr(item.caption) + '" data-id="' + item.id + '" class="cap-input" placeholder="사진 이름">';
@@ -616,48 +656,71 @@
     return div;
   }
 
-  async function loadGallery(){
-    const { data, error } = await sb.from('gallery').select('*').order('sort_order', { ascending: true });
-    const sGrid = document.getElementById('sceneryListAdmin');
-    const sEmpty = document.getElementById('sceneryEmptyMsg');
-    const aBox = document.getElementById('activityByFolder');
-    const aEmpty = document.getElementById('activityEmptyMsg');
+  /* 4장씩 넘기는 묶음 */
+  function pagedBlock(container, titleText, items, opts){
+    const wrap = document.createElement('div');
+    wrap.className = 'admin-folder';
+    const pages = Math.max(1, Math.ceil(items.length / ADMIN_PER));
+    let page = 0;
 
+    wrap.innerHTML =
+      '<div class="admin-folder-head">' +
+        '<h4>' + titleText + ' <span class="cnt">' + items.length + '장</span></h4>' +
+        (pages > 1 ?
+          '<div class="admin-pager">' +
+            '<button type="button" class="icon-btn pg" data-go="-1">‹</button>' +
+            '<span class="pg-now"></span>' +
+            '<button type="button" class="icon-btn pg" data-go="1">›</button>' +
+          '</div>' : '') +
+      '</div>' +
+      '<div class="gallery-grid-admin"></div>';
+
+    const grid = wrap.querySelector('.gallery-grid-admin');
+    const now = wrap.querySelector('.pg-now');
+
+    function draw(){
+      grid.innerHTML = '';
+      if (items.length === 0){
+        grid.innerHTML = '<p class="empty-msg" style="grid-column:1/-1;">아직 사진이 없어요.</p>';
+      } else {
+        items.slice(page * ADMIN_PER, page * ADMIN_PER + ADMIN_PER)
+             .forEach((it, i) => grid.appendChild(photoTile(it, page * ADMIN_PER + i, items, opts)));
+      }
+      if (now) now.textContent = (page + 1) + ' / ' + pages;
+    }
+    wrap.querySelectorAll('.pg').forEach(b => {
+      b.addEventListener('click', () => {
+        page = (page + Number(b.dataset.go) + pages) % pages;
+        draw();
+      });
+    });
+    draw();
+    container.appendChild(wrap);
+  }
+
+  async function loadGallery(){
+    const { data, error } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
+    const sBox = document.getElementById('sceneryListAdmin');
+    const aBox = document.getElementById('activityByFolder');
     if (error) {
-      sGrid.innerHTML = ''; aBox.innerHTML = '';
-      sEmpty.textContent = '불러오기 실패: ' + error.message; sEmpty.style.display = 'block';
+      sBox.innerHTML = '<p class="empty-msg">불러오기 실패: ' + error.message + '</p>';
       return;
     }
     const all = data || [];
     window._galleryCache = all;
 
-    /* 경관 */
     const scenery = all.filter(i => (i.category || '경관') === '경관');
     window._sceneryCache = scenery;
-    sGrid.innerHTML = '';
-    sEmpty.style.display = scenery.length === 0 ? 'block' : 'none';
-    scenery.forEach((item, idx) => sGrid.appendChild(photoTile(item, idx, scenery, { folder:false, scope:'scenery' })));
+    sBox.innerHTML = '';
+    pagedBlock(sBox, '경관 사진', scenery, { folder:false, scope:'scenery' });
 
-    /* 활동 — 폴더별 */
     const activity = all.filter(i => i.category === '활동');
     aBox.innerHTML = '';
-    aEmpty.style.display = activity.length === 0 ? 'block' : 'none';
     window._folderCache = {};
     FOLDERS.forEach(f => {
       const items = activity.filter(i => (i.folder || '일상') === f);
       window._folderCache[f] = items;
-      const wrap = document.createElement('div');
-      wrap.style.marginBottom = '22px';
-      wrap.innerHTML = '<p style="font-weight:700;font-size:14px;margin:0 0 8px;">📁 ' + f + ' 사진 <span style="color:var(--brown-soft);font-weight:400;">(' + items.length + '장)</span></p>';
-      const grid = document.createElement('div');
-      grid.className = 'gallery-grid-admin';
-      if (items.length === 0){
-        grid.innerHTML = '<p class="empty-msg" style="grid-column:1/-1;">아직 사진이 없어요.</p>';
-      } else {
-        items.forEach((item, idx) => grid.appendChild(photoTile(item, idx, items, { folder:true, scope:'f:' + f })));
-      }
-      wrap.appendChild(grid);
-      aBox.appendChild(wrap);
+      pagedBlock(aBox, '📁 ' + f, items, { folder:true, scope:'f:' + f });
     });
   }
 
@@ -669,16 +732,17 @@
     if (e.target.classList.contains('folder-input')){
       const { error } = await sb.from('gallery').update({ folder: e.target.value }).eq('id', e.target.dataset.id);
       if (error) { toast('저장 실패: ' + error.message); return; }
-      toast('폴더 옮김');
+      toast('폴더를 옮겼어요');
       loadGallery();
     }
   }
 
   async function galleryClick(e){
     const btn = e.target.closest('button');
-    if (!btn || btn.disabled) return;
+    if (!btn || btn.disabled || btn.classList.contains('pg')) return;
     const id = btn.dataset.id;
     const act = btn.dataset.act;
+    if (!act) return;
     const idx = Number(btn.dataset.idx);
     const scope = btn.dataset.scope;
 
@@ -694,7 +758,7 @@
     let arr = [];
     if (scope === 'scenery') arr = window._sceneryCache || [];
     else if (scope && scope.indexOf('f:') === 0) arr = (window._folderCache || {})[scope.slice(2)] || [];
-    if (arr.length === 0) return;
+    if (!arr.length) return;
 
     const j = act === 'up' ? idx - 1 : idx + 1;
     if (j < 0 || j >= arr.length) return;
@@ -704,13 +768,12 @@
     loadGallery();
   }
 
-  ['sceneryListAdmin','activityByFolder'].forEach(idName => {
-    const el = document.getElementById(idName);
+  ['sceneryListAdmin','activityByFolder'].forEach(n => {
+    const el = document.getElementById(n);
     el.addEventListener('change', galleryChange);
     el.addEventListener('click', galleryClick);
   });
 
-  /* 구분에 따라 입력칸 바꾸기 */
   const catSel = document.getElementById('gal-category');
   function syncGalleryFields(){
     const isAct = catSel.value === '활동';
@@ -720,7 +783,6 @@
   catSel.addEventListener('change', syncGalleryFields);
   syncGalleryFields();
 
-  /* 업로드 (여러 장 가능) */
   document.getElementById('gal-file').addEventListener('change', async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
