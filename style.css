@@ -342,8 +342,8 @@ header.stuck{box-shadow:0 4px 20px rgba(61,50,38,0.10);}
   transition:transform .3s cubic-bezier(.34,1.4,.5,1);
 }
 .gallery-item:hover{transform:translateY(-6px) rotate(-.7deg);}
-.gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
-.gallery-item:hover img{transform:scale(1.07);}
+.gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .4s;background:var(--paper-warm);}
+.gallery-item:hover img{transform:scale(1.05);}
 .gallery-cap{
   position:absolute;left:8px;bottom:8px;
   background:rgba(255,255,255,.92);border:1.5px solid var(--ink);
@@ -684,20 +684,6 @@ footer p{margin:6px 0;font-size:14px;color:#C6E2CE;}
 .day-folder.active.f-sky{background:var(--sky);}
 .day-folder.active.f-sun{background:var(--sun-light);}
 
-.day-view{
-  margin-top:28px;background:#fff;border:2px solid var(--ink);
-  border-radius:var(--r-lg);box-shadow:var(--shadow-sticker);padding:26px 24px;
-}
-.day-view-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
-.day-view-head h3{margin:0;font-size:21px;}
-
-.pager{display:flex;align-items:center;gap:12px;}
-.pg-btn{
-  width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);
-  background:var(--sun);cursor:pointer;font-size:20px;line-height:1;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 3px 0 var(--ink);transition:transform .15s,box-shadow .15s;
-}
 .pg-btn:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--ink);}
 .pg-btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink);}
 .pg-now{font-family:'Jua',sans-serif;font-size:15px;color:var(--ink-soft);min-width:48px;text-align:center;}
@@ -706,9 +692,7 @@ footer p{margin:6px 0;font-size:14px;color:#C6E2CE;}
   .day-folders{grid-template-columns:1fr;gap:12px;}
   .day-folder{flex-direction:row;justify-content:flex-start;gap:18px;padding:18px 20px;}
   .day-folder svg{width:64px;height:52px;flex:none;}
-  .day-view{padding:20px 16px;}
-}
-
+  
 /* ============================================================
    달력 표시 강화
    ============================================================ */
@@ -721,11 +705,6 @@ footer p{margin:6px 0;font-size:14px;color:#C6E2CE;}
 .cal-day.has-event{
   background:var(--berry-light);border-color:var(--berry);
   font-family:'Jua',sans-serif;color:#B03A4C;
-}
-.cal-day.has-event::after{
-  content:'';position:absolute;top:5px;right:5px;
-  width:9px;height:9px;border-radius:50%;
-  background:var(--berry);border:1.5px solid var(--ink);
 }
 .cal-day.today{
   background:var(--sun);border-color:var(--ink);
@@ -758,3 +737,49 @@ footer p{margin:6px 0;font-size:14px;color:#C6E2CE;}
 .teaser-reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch;}
 @media (max-width:980px){.teaser-reviews{grid-template-columns:1fr;}}
 .pager-center{display:flex;justify-content:center;margin-top:30px;}
+
+
+/* ============================================================
+   폴더 사진 창
+   ============================================================ */
+.day-modal{
+  position:fixed;inset:0;z-index:150;
+  background:rgba(35,28,20,.82);
+  display:flex;align-items:center;justify-content:center;padding:22px;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.day-modal.open{opacity:1;pointer-events:auto;}
+.day-panel{
+  width:100%;max-width:920px;max-height:90vh;overflow-y:auto;
+  background:var(--paper);border:3px solid var(--ink);border-radius:30px;
+  box-shadow:0 24px 60px rgba(0,0,0,.35);
+  padding:30px 30px 34px;
+  transform:translateY(18px) scale(.97);
+  transition:transform .35s cubic-bezier(.34,1.4,.5,1);
+}
+.day-modal.open .day-panel{transform:none;}
+.day-panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;margin-bottom:22px;flex-wrap:wrap;
+}
+.day-panel-head h3{margin:0;font-size:25px;display:flex;align-items:center;gap:10px;}
+.day-panel-head .tag{
+  font-family:'Jua',sans-serif;font-size:13px;padding:3px 13px;
+  border:2px solid var(--ink);border-radius:100px;
+}
+.day-panel .close{
+  width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);
+  background:#fff;cursor:pointer;font-size:20px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 0 var(--ink);
+}
+.day-panel .close:hover{background:var(--berry);color:#fff;}
+.day-photos{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+.day-photos .gallery-item{aspect-ratio:4/3;}
+.day-foot{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:26px;}
+@media (max-width:720px){
+  .day-modal{padding:12px;}
+  .day-panel{padding:22px 16px 26px;border-radius:22px;max-height:92vh;}
+  .day-panel-head h3{font-size:21px;}
+  .day-photos{grid-template-columns:repeat(2,1fr);gap:10px;}
+}

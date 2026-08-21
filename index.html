@@ -234,7 +234,6 @@
       <p>폴더를 누르면 사진을 보실 수 있어요.</p>
     </div>
     <div class="day-folders rise d1" id="dayFolders"></div>
-    <div id="dayViewer"></div>
   </div></div>
 </section>
 <section class="scene tint-leaf" id="rooms">
@@ -548,6 +547,17 @@
   </div>
   <div class="foot-bottom wrap">© 2026 한솔어린이집</div>
 </footer>
+
+<div class="day-modal" id="dayModal" role="dialog" aria-modal="true" aria-label="사진 보기">
+  <div class="day-panel">
+    <div class="day-panel-head">
+      <h3><span class="day-title"></span><span class="tag day-tag"></span></h3>
+      <button type="button" class="close" aria-label="닫기">✕</button>
+    </div>
+    <div class="day-photos"></div>
+    <div class="day-foot"></div>
+  </div>
+</div>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="사진 크게 보기">
   <button class="lb-close" id="lbClose" aria-label="닫기">✕</button>

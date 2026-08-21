@@ -90,7 +90,8 @@ function photoTile(item, list, idx, withCap){
   div.className = 'gallery-item';
   div.setAttribute('role','button');
   div.setAttribute('tabindex','0');
-  div.innerHTML = '<img src="' + item.image_url + '" alt="' + esc(item.caption) + '" loading="lazy">' +
+  div.innerHTML = '<img src="' + item.image_url + '" alt="' + esc(item.caption) +
+    '" loading="lazy" decoding="async" width="600" height="450">' +
     (withCap && item.caption ? '<span class="gallery-cap">' + esc(item.caption) + '</span>' : '');
   div.addEventListener('click', () => lbOpen(list, idx));
   div.addEventListener('keydown', e => {
@@ -239,17 +240,15 @@ const DAY_FOLDERS = [
   { key:'활동',        label:'활동 사진',      cls:'f-sky' },
   { key:'현장체험학습', label:'현장체험학습',   cls:'f-sun' }
 ];
-const PER_PAGE = 8;
+const PER_PAGE = 4;
 
 async function renderDayFolders(){
   const folderBox = document.getElementById('dayFolders');
-  const viewer = document.getElementById('dayViewer');
-  if (!folderBox || !viewer) return;
+  if (!folderBox) return;
 
   const { data } = await sb.from('gallery').select('*')
     .eq('category', '활동').order('created_at', { ascending:false });
   const all = data || [];
-  let openKey = null;
 
   folderBox.innerHTML = '';
   DAY_FOLDERS.forEach(f => {
@@ -266,48 +265,47 @@ async function renderDayFolders(){
       '<span class="day-name">' + f.label + '</span>';
 
     card.addEventListener('click', () => {
-      if (openKey === f.key){
-        openKey = null;
-        viewer.innerHTML = '';
-        folderBox.querySelectorAll('.day-folder').forEach(x => x.classList.remove('active'));
-        return;
-      }
-      openKey = f.key;
       folderBox.querySelectorAll('.day-folder').forEach(x => x.classList.remove('active'));
       card.classList.add('active');
-      showFolder(viewer, f, items);
+      showFolder(f, items);
     });
     folderBox.appendChild(card);
   });
 }
 
-function showFolder(viewer, folder, items){
-  viewer.innerHTML = '';
+function showFolder(folder, items){
+  const modal = document.getElementById('dayModal');
+  if (!modal) return;
+  const panel = modal.querySelector('.day-panel');
+  const titleEl = modal.querySelector('.day-title');
+  const tagEl = modal.querySelector('.day-tag');
+  const grid = modal.querySelector('.day-photos');
+  const foot = modal.querySelector('.day-foot');
+
+  panel.className = 'day-panel ' + folder.cls;
+  titleEl.textContent = folder.label;
+
   if (items.length === 0){
-    viewer.innerHTML = '<div class="day-view"><p class="gallery-empty">아직 등록된 사진이 없어요.</p></div>';
+    tagEl.textContent = '';
+    grid.innerHTML = '<p class="gallery-empty" style="grid-column:1/-1;">아직 등록된 사진이 없어요.</p>';
+    foot.innerHTML = '';
+    openDayModal();
     return;
   }
+
   const list = items.map(i => ({ url:i.image_url, cap:folder.label }));
   const pages = Math.ceil(items.length / PER_PAGE);
   let page = 0;
 
-  const shell = document.createElement('div');
-  shell.className = 'day-view';
-  shell.innerHTML =
-    '<div class="day-view-head">' +
-      '<h3>' + folder.label + '</h3>' +
-      (pages > 1 ?
-        '<div class="pager">' +
-          '<button type="button" class="pg-btn" data-go="-1" aria-label="이전 사진">‹</button>' +
-          '<span class="pg-now"></span>' +
-          '<button type="button" class="pg-btn" data-go="1" aria-label="다음 사진">›</button>' +
-        '</div>' : '') +
-    '</div>' +
-    '<div class="gallery-grid day-grid"></div>';
-  viewer.appendChild(shell);
+  tagEl.textContent = items.length + '장';
+  foot.innerHTML = pages > 1 ?
+    '<div class="pager">' +
+      '<button type="button" class="pg-btn" data-go="-1" aria-label="이전 사진">‹</button>' +
+      '<span class="pg-now"></span>' +
+      '<button type="button" class="pg-btn" data-go="1" aria-label="다음 사진">›</button>' +
+    '</div>' : '';
 
-  const grid = shell.querySelector('.day-grid');
-  const now = shell.querySelector('.pg-now');
+  const now = foot.querySelector('.pg-now');
 
   function draw(){
     grid.innerHTML = '';
@@ -315,14 +313,39 @@ function showFolder(viewer, folder, items){
          .forEach((it, i) => grid.appendChild(photoTile(it, list, page * PER_PAGE + i, false)));
     if (now) now.textContent = (page + 1) + ' / ' + pages;
   }
-  shell.querySelectorAll('.pg-btn').forEach(b => {
+  foot.querySelectorAll('.pg-btn').forEach(b => {
     b.addEventListener('click', () => {
       page = (page + Number(b.dataset.go) + pages) % pages;
       draw();
+      panel.scrollTop = 0;
     });
   });
   draw();
+  openDayModal();
 }
+
+function openDayModal(){
+  const modal = document.getElementById('dayModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDayModal(){
+  const modal = document.getElementById('dayModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  if (!lb || !lb.classList.contains('open')) document.body.style.overflow = '';
+  document.querySelectorAll('.day-folder').forEach(x => x.classList.remove('active'));
+}
+
+(function initDayModal(){
+  const modal = document.getElementById('dayModal');
+  if (!modal) return;
+  modal.querySelector('.close').addEventListener('click', closeDayModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeDayModal(); });
+  addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('open') && (!lb || !lb.classList.contains('open'))) closeDayModal();
+  });
+})();
 
 /* ============================================================
    육아 이야기
