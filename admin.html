@@ -199,6 +199,28 @@
   .admin-pager{display:flex;align-items:center;gap:8px;}
   .admin-pager .pg{padding:5px 12px;font-size:14px;}
   .admin-pager .pg-now{font-size:12.5px;color:var(--brown-soft);min-width:42px;text-align:center;}
+
+  /* 후기 수정 창 */
+  .rv-editor{
+    position:fixed;inset:0;z-index:300;background:rgba(40,30,20,.65);
+    display:none;align-items:center;justify-content:center;padding:18px;
+  }
+  .rv-editor.open{display:flex;}
+  .rv-editor-panel{
+    background:#fff;border-radius:20px;padding:26px 24px;
+    width:100%;max-width:620px;max-height:92vh;overflow-y:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+  }
+  .rv-editor-panel h3{margin:0 0 18px;font-size:20px;}
+  .rv-editor-panel textarea{min-height:220px;font-size:15px;line-height:1.8;}
+  .rv-editor-panel input{font-size:15px;padding:12px 14px;}
+  .rv-editor-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+  .rv-editor-btns .btn{padding:12px 26px;}
+  @media (max-width:700px){
+    .rv-editor-panel{padding:20px 16px;}
+    .rv-editor-panel textarea{min-height:260px;}
+    .rv-editor-btns .btn{flex:1;}
+  }
 </style>
 </head>
 <body>
@@ -382,6 +404,33 @@
           <button type="submit" class="btn btn-primary">글 등록</button>
         </form>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="rv-editor" id="rvEditor">
+  <div class="rv-editor-panel">
+    <h3>후기 수정</h3>
+    <div class="field-row">
+      <div class="field">
+        <label>이름</label>
+        <input type="text" id="rve-name">
+      </div>
+      <div class="field" style="max-width:130px;">
+        <label>연도</label>
+        <input type="text" id="rve-year">
+      </div>
+    </div>
+    <div class="field">
+      <label>후기 내용</label>
+      <textarea id="rve-text"></textarea>
+      <p style="font-size:12.5px;color:var(--brown-soft);margin:4px 0 0;">
+        💡 강조할 부분을 <b>**별표 두 개**</b>로 감싸면 형광펜이 칠해져요.
+      </p>
+    </div>
+    <div class="rv-editor-btns">
+      <button type="button" class="btn btn-outline" id="rve-cancel" style="border-color:var(--line);color:var(--brown);">취소</button>
+      <button type="button" class="btn btn-primary" id="rve-save">저장하기</button>
     </div>
   </div>
 </div>
@@ -606,18 +655,7 @@
       const { data: rows } = await sb.from('reviews').select('*').eq('id', id).limit(1);
       const rv = rows && rows[0];
       if (!rv) return;
-      const newText = prompt('후기 내용 수정', rv.text);
-      if (newText === null) return;
-      const newName = prompt('이름 수정', rv.name);
-      if (newName === null) return;
-      const newYear = prompt('연도 수정', rv.year);
-      if (newYear === null) return;
-      const { error } = await sb.from('reviews').update({
-        text: newText.trim(), name: newName.trim(), year: newYear.trim()
-      }).eq('id', id);
-      if (error) { toast('수정 실패: ' + error.message); return; }
-      toast('수정됐어요');
-      loadReviews();
+      openReviewEditor(rv);
     }
   });
 
@@ -697,6 +735,39 @@
     draw();
     container.appendChild(wrap);
   }
+
+  /* 후기 수정 창 */
+  function openReviewEditor(rv){
+    const box = document.getElementById('rvEditor');
+    document.getElementById('rve-name').value = rv.name || '';
+    document.getElementById('rve-year').value = rv.year || '';
+    document.getElementById('rve-text').value = rv.text || '';
+    box.dataset.id = rv.id;
+    box.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('rve-text').focus(), 100);
+  }
+  function closeReviewEditor(){
+    document.getElementById('rvEditor').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('rve-cancel').addEventListener('click', closeReviewEditor);
+  document.getElementById('rvEditor').addEventListener('click', e => {
+    if (e.target.id === 'rvEditor') closeReviewEditor();
+  });
+  document.getElementById('rve-save').addEventListener('click', async () => {
+    const box = document.getElementById('rvEditor');
+    const id = box.dataset.id;
+    const name = document.getElementById('rve-name').value.trim();
+    const year = document.getElementById('rve-year').value.trim();
+    const text = document.getElementById('rve-text').value.trim();
+    if (!name || !year || !text){ alert('빈 칸을 채워주세요.'); return; }
+    const { error } = await sb.from('reviews').update({ name, year, text }).eq('id', id);
+    if (error){ toast('수정 실패: ' + error.message); return; }
+    toast('수정됐어요');
+    closeReviewEditor();
+    loadReviews();
+  });
 
   async function loadGallery(){
     const { data, error } = await sb.from('gallery').select('*').order('created_at', { ascending: false });

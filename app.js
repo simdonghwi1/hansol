@@ -54,39 +54,16 @@ const lbImg = document.getElementById('lbImg');
 const lbCap = document.getElementById('lbCap');
 let lbList = [], lbIdx = 0;
 
-let lbToken = 0;
 function lbShow(i){
   if (!lb || lbList.length === 0) return;
   lbIdx = (i + lbList.length) % lbList.length;
   const item = lbList[lbIdx];
-  lbCap.textContent = item.cap || '';
+  /* 목록에서 이미 받아둔 사진이라 바로 표시하면 됩니다 */
+  lbImg.src = item.url;
   lbImg.alt = item.cap || '';
-  lbImg.classList.remove('ready');
-  const loading = document.getElementById('lbLoading');
-  if (loading) loading.classList.add('on');
-
-  const token = ++lbToken;
-  const pre = new Image();
-  pre.decoding = 'async';
-  pre.onload = () => {
-    if (token !== lbToken) return;
-    lbImg.src = item.url;
-    lbImg.classList.add('ready');
-    if (loading) loading.classList.remove('on');
-    /* 다음 사진 미리 받아두기 */
-    if (lbList.length > 1){
-      const nx = new Image();
-      nx.src = lbList[(lbIdx + 1) % lbList.length].url;
-    }
-  };
-  pre.onerror = () => {
-    if (token !== lbToken) return;
-    lbImg.src = item.url;
-    lbImg.classList.add('ready');
-    if (loading) loading.classList.remove('on');
-  };
-  pre.src = item.url;
+  lbCap.textContent = item.cap || '';
 }
+
 function lbOpen(list, i){
   if (!lb) return;
   lbList = list; lbShow(i);
@@ -141,9 +118,10 @@ function sortReviews(data){
     return (a.sort_order || 0) - (b.sort_order || 0);
   });
 }
-function reviewInner(r){
-  return '<div class="review-inner' + (r.pinned ? ' pinned' : '') + '">' +
-    (r.pinned ? '<span class="pin-badge">📌 추천</span>' : '') +
+function reviewInner(r, showPin){
+  const pin = showPin && r.pinned;
+  return '<div class="review-inner' + (pin ? ' pinned' : '') + '">' +
+    (pin ? '<span class="pin-badge">📌 추천</span>' : '') +
     '<span class="stars">★★★★★</span>' +
     '<p class="review-text">' + hl(r.text) + '</p>' +
     '<div class="review-meta"><span class="review-name">' + esc(r.name) + '</span><span>' + esc(r.year) + '</span></div>' +
@@ -158,7 +136,7 @@ async function renderReviewTeaser(){
   box.innerHTML = '';
   sortReviews(data).slice(0,3).forEach(r => {
     const holder = document.createElement('div');
-    holder.innerHTML = reviewInner(r);
+    holder.innerHTML = reviewInner(r, true);
     box.appendChild(holder.firstChild);
   });
 }
@@ -168,11 +146,15 @@ async function renderReviewsFull(){
   if (!track) return;
   const { data } = await sb.from('reviews').select('*');
   if (!data || !data.length) return;
-  const list = sortReviews(data);
+  /* 고정 후기는 메인에서 이미 보셨으니 뒤쪽으로 */
+  const normal = data.filter(r => !r.pinned).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+  const pinned = data.filter(r =>  r.pinned).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+  const list = normal.concat(pinned);
+
   list.forEach(r => {
     const div = document.createElement('div');
     div.className = 'review-card';
-    div.innerHTML = reviewInner(r);
+    div.innerHTML = reviewInner(r, false);
     track.appendChild(div);
   });
   setupReviewSlider(track, list.length);
@@ -271,7 +253,8 @@ const DAY_FOLDERS = [
   { key:'활동',        label:'활동 사진',      cls:'f-sky' },
   { key:'현장체험학습', label:'현장체험학습',   cls:'f-sun' }
 ];
-const PER_PAGE = 4;
+const PER_PAGE = 8;
+const MAX_PAGES = 3;
 
 async function renderDayFolders(){
   const folderBox = document.getElementById('dayFolders');
@@ -324,11 +307,13 @@ function showFolder(folder, items){
     return;
   }
 
+  const pages = Math.min(MAX_PAGES, Math.ceil(items.length / PER_PAGE));
+  const shown = Math.min(items.length, pages * PER_PAGE);
+  items = items.slice(0, shown);
   const list = items.map(i => ({ url:i.image_url, cap:folder.label }));
-  const pages = Math.ceil(items.length / PER_PAGE);
   let page = 0;
 
-  tagEl.textContent = items.length + '장';
+  tagEl.textContent = shown + '장';
   foot.innerHTML = pages > 1 ?
     '<div class="pager">' +
       '<button type="button" class="pg-btn" data-go="-1" aria-label="이전 사진">‹</button>' +
