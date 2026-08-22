@@ -389,7 +389,7 @@ async function renderPostTeaser(){
   data.forEach(p => {
     const a = document.createElement('a');
     a.className = 'teaser-post';
-    a.href = 'stories.html?post=' + p.id;
+    a.href = '/story/' + p.id;
     const d = p.publish_date.split('-');
     a.innerHTML =
       '<div class="post-head"><h3 class="post-title">' + esc(p.title) + '</h3>' +
@@ -433,19 +433,22 @@ async function renderPostsPaged(){
         '<span class="post-date">' + d[0] + '.' + d[1] + '.' + d[2] + '</span></div>' +
         '<p class="post-excerpt">' + esc(p.content.replace(/\s+/g,' ').slice(0,95)) + '…</p>' +
         '<div class="post-body">' + esc(p.content) +
-          '<button type="button" class="post-share" data-id="' + p.id + '" data-title="' + esc(p.title) + '">🔗 이 글 링크 복사</button>' +
+          '<div class="post-actions">' +
+            '<a class="post-link" href="/story/' + p.id + '">📄 글 페이지로 보기</a>' +
+            '<button type="button" class="post-share" data-id="' + p.id + '" data-title="' + esc(p.title) + '">🔗 이 글 링크 복사</button>' +
+          '</div>' +
         '</div>' +
         '<div class="post-toggle">자세히 보기 →</div>';
 
       card.addEventListener('click', ev => {
-        if (ev.target.closest('.post-share')) return;
+        if (ev.target.closest('.post-share') || ev.target.closest('.post-link')) return;
         const open = card.classList.toggle('open');
         card.querySelector('.post-toggle').textContent = open ? '접기 ↑' : '자세히 보기 →';
       });
       card.querySelector('.post-share').addEventListener('click', async ev => {
         ev.stopPropagation();
         const btn = ev.currentTarget;
-        const url = location.origin + location.pathname + '?post=' + btn.dataset.id;
+        const url = location.origin + '/story/' + btn.dataset.id;
         try {
           if (navigator.share){ await navigator.share({ title: btn.dataset.title, url }); return; }
           await navigator.clipboard.writeText(url);
