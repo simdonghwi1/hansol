@@ -74,6 +74,8 @@ function lbOpen(list, i){
 function lbClose(){
   if (!lb) return;
   lb.classList.remove('open');
+  lbImg.removeAttribute('src');   /* 큰 사진을 메모리에서 놓아줍니다 */
+  lbList = [];
   const dm = document.getElementById('dayModal');
   if (!dm || !dm.classList.contains('open')){
     document.body.style.overflow = '';
@@ -350,6 +352,8 @@ function closeDayModal(){
   const modal = document.getElementById('dayModal');
   if (!modal) return;
   modal.classList.remove('open');
+  const g = modal.querySelector('.day-photos');
+  if (g) g.innerHTML = '';        /* 창을 닫으면 사진을 비웁니다 */
   if (!lb || !lb.classList.contains('open')){
     document.body.style.overflow = '';
     document.body.classList.remove('locked');
